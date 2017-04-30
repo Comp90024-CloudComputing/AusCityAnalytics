@@ -18,16 +18,16 @@ max_tweets = 10000
 tweets_per_qry = 100
 # file to write in
 f_name = 'tweets.txt'
-#latitude = -37.814
-#longitude = 144.96332
-#radius = 25
+latitude = -37.814
+longitude = 144.96332
+radius = 25
 
 sinceId = None
 max_id = -1
 
 # get the city id to search (here melbourne)
-places = api.geo_search(query='Melbourne', granularity='city')
-place_id = places[0].id
+#places = api.geo_search(query='Melbourne', granularity='city')
+#place_id = places[0].id
 
 tweet_count = 0
 #print("Downloading max {0} tweets".format(max_tweets))
@@ -36,16 +36,16 @@ with open(f_name, 'w') as f:
         try:
             if (max_id <= 0):
                 if (not sinceId):
-                    new_tweets = api.search(q='place:%s'%(place_id), count=tweets_per_qry)
+                    new_tweets = api.search(count=tweets_per_qry, geocode='%f,%f,%dmi'%(latitude,longitude,radius))
                 else:
-                    new_tweets = api.search(q='place:%s'%(place_id), count=tweets_per_qry,
+                    new_tweets = api.search(count=tweets_per_qry, geocode='%f,%f,%dmi'%(latitude,longitude,radius),
                                             since_id=sinceId)
             else:
                 if (not sinceId):
-                    new_tweets = api.search(q='place:%s'%(place_id), count=tweets_per_qry,
+                    new_tweets = api.search(count=tweets_per_qry, geocode='%f,%f,%dmi'%(latitude,longitude,radius),
                                             max_id=str(max_id - 1))
                 else:
-                    new_tweets = api.search(q='place:%s'%(place_id), count=tweets_per_qry,
+                    new_tweets = api.search(count=tweets_per_qry, geocode='%f,%f,%dmi'%(latitude,longitude,radius),
                                             max_id=str(max_id - 1),
                                             since_id=sinceId)
             if not new_tweets:
