@@ -1,5 +1,8 @@
+import sys
 import tweepy
+from itertools import islice
 import jsonpickle
+import json
 from tweepy import OAuthHandler
 
 consumer_key = 'zfcB3Zj5WRp9f1pAHwJdtfiHm'
@@ -11,6 +14,20 @@ auth = OAuthHandler(consumer_key, consumer_secret)
 auth.set_access_token(access_token, access_secret)
 
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+
+
+def import_senti_words(file_path, start_line):
+    word_set = []
+    with open(file_path, 'r') as infile:
+        for line in islice(infile, start_line, None):
+            word_set.append(line.rstrip())
+    return word_set
+
+neg_path = 'opinion-lexicon-English/negative-words.txt'
+neg_set = import_senti_words(neg_path, 35)
+pos_path = 'opinion-lexicon-English/positive-words.txt'
+pos_set = import_senti_words(pos_path, 35)
+
 
 # max tweets for this search
 max_tweets = 10000
@@ -30,6 +47,7 @@ max_id = -1
 #place_id = places[0].id
 
 tweet_count = 0
+senti_count = {}
 #print("Downloading max {0} tweets".format(max_tweets))
 with open(f_name, 'w') as f:
     while tweet_count < max_tweets:
@@ -52,7 +70,34 @@ with open(f_name, 'w') as f:
                 print("No more tweets found")
                 break
             for tweet in new_tweets:
-                f.write(jsonpickle.encode(tweet._json, unpicklable=False) + '\n')
+                tweet_str = jsonpickle.encode(tweet._json, unpicklable=False)
+                tweet_dct = json.loads(tweet_str)
+                text = tweet_dct['text']
+                tweet_dct_truncated = {}
+                senti = False
+                for word in neg_set:
+                    if word in text:
+                        senti = True
+                        senti_count[word] = senti_count.get(word, 0) + 1
+                        tweet_dct_truncated['sentiment'] = 'available'
+                        break
+                if senti == False:
+                    for word in pos_set:
+                        if word in text:
+                            senti = True
+                            senti_count[word] = senti_count.get(word, 0) + 1
+                            tweet_dct_truncated['sentiment'] = 'available'
+                            break
+                if senti == False:
+                    continue
+
+                tweet_dct_truncated['id'] = tweet_dct['id']
+                tweet_dct_truncated['created_at'] = tweet_dct['created_at']
+                tweet_dct_truncated['coordinates'] = tweet_dct['coordinates']
+                tweet_dct_truncated['text'] = tweet_dct['text']
+                tweet_dct_truncated['place'] = tweet_dct['place']
+                tweet_dct_truncated['entities'] = tweet_dct['entities']
+                f.write(json.dumps(tweet_dct_truncated) + '\n')
             tweet_count += len(new_tweets)
             print("Downloaded {0} tweets".format(tweet_count))
             max_id = new_tweets[-1].id
