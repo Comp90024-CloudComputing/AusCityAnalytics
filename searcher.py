@@ -28,9 +28,14 @@ neg_set = import_senti_words(neg_path, 35)
 pos_path = 'opinion-lexicon-English/positive-words.txt'
 pos_set = import_senti_words(pos_path, 35)
 
+emo_pos_set = ['lol', ':)', ':-)', ';)']
+emo_neg_set = [':(', ':-(']
+
+senti_set = pos_set + neg_set + emo_pos_set + emo_neg_set
+
 
 # max tweets for this search
-max_tweets = 10000
+max_tweets = 100000
 # tweets per query (limited by api)
 tweets_per_qry = 100
 # file to write in
@@ -75,19 +80,12 @@ with open(f_name, 'w') as f:
                 text = tweet_dct['text']
                 tweet_dct_truncated = {}
                 senti = False
-                for word in neg_set:
+                for word in senti_set:
                     if word in text:
                         senti = True
                         senti_count[word] = senti_count.get(word, 0) + 1
                         tweet_dct_truncated['sentiment'] = 'available'
                         break
-                if senti == False:
-                    for word in pos_set:
-                        if word in text:
-                            senti = True
-                            senti_count[word] = senti_count.get(word, 0) + 1
-                            tweet_dct_truncated['sentiment'] = 'available'
-                            break
                 if senti == False:
                     continue
 
