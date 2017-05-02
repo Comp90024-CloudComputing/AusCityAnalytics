@@ -1,4 +1,3 @@
-import sys
 import tweepy
 from itertools import islice
 import jsonpickle
@@ -35,7 +34,7 @@ senti_set = pos_set + neg_set + emo_pos_set + emo_neg_set
 
 
 # max tweets for this search
-max_tweets = 100000
+#max_tweets = 100000
 # tweets per query (limited by api)
 tweets_per_qry = 100
 # file to write in
@@ -51,11 +50,11 @@ max_id = -1
 #places = api.geo_search(query='Melbourne', granularity='city')
 #place_id = places[0].id
 
-tweet_count = 0
-senti_count = {}
+#tweet_count = 0
+#senti_count = {}
 #print("Downloading max {0} tweets".format(max_tweets))
 with open(f_name, 'w') as f:
-    while tweet_count < max_tweets:
+    while True:
         try:
             if (max_id <= 0):
                 if (not sinceId):
@@ -83,7 +82,7 @@ with open(f_name, 'w') as f:
                 for word in senti_set:
                     if word in text:
                         senti = True
-                        senti_count[word] = senti_count.get(word, 0) + 1
+                        #senti_count[word] = senti_count.get(word, 0) + 1
                         tweet_dct_truncated['sentiment'] = 'available'
                         break
                 if senti == False:
@@ -96,8 +95,8 @@ with open(f_name, 'w') as f:
                 tweet_dct_truncated['place'] = tweet_dct['place']
                 tweet_dct_truncated['entities'] = tweet_dct['entities']
                 f.write(json.dumps(tweet_dct_truncated) + '\n')
-            tweet_count += len(new_tweets)
-            print("Downloaded {0} tweets".format(tweet_count))
+            #tweet_count += len(new_tweets)
+            #print("Downloaded {0} tweets".format(tweet_count))
             max_id = new_tweets[-1].id
         except tweepy.TweepError as e:
             # exit if any error
