@@ -392,3 +392,8 @@ Wairarapa wine
 Central Otago wine
 Marlborough wine
 Nelson wine
+winery
+wineries
+cellar door
+vineyard
+wine region
