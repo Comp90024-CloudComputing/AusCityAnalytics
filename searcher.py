@@ -1,8 +1,13 @@
-import tweepy
-from itertools import islice
-import jsonpickle
+import re
+import sys
 import json
+import tweepy
+import codecs
+import string
+import jsonpickle
+from itertools import islice
 from tweepy import OAuthHandler
+from collections import defaultdict
 
 consumer_key = 'zfcB3Zj5WRp9f1pAHwJdtfiHm'
 consumer_secret = 'CWn46FyN3o9jfRePrgNrJwX9VzspR1t38c1Wp5bGLSej0IpETh'
@@ -15,23 +20,39 @@ auth.set_access_token(access_token, access_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 
-def import_senti_words(file_path, start_line):
+search_loc = str(sys.argv[1])
+
+def import_words(file_path, start_line):
     word_set = []
     with open(file_path, 'r') as infile:
         for line in islice(infile, start_line, None):
             word_set.append(line.rstrip())
     return word_set
 
+def import_words_utf8(file_path, start_line):
+    word_set = []
+    with codecs.open(file_path, 'r', 'utf-8') as infile:
+        for line in islice(infile, start_line, None):
+            word_set.append(line.rstrip())
+    return word_set
+
 neg_path = 'opinion-lexicon-English/negative-words.txt'
-neg_set = import_senti_words(neg_path, 35)
+neg_set = import_words(neg_path, 35)
 pos_path = 'opinion-lexicon-English/positive-words.txt'
-pos_set = import_senti_words(pos_path, 35)
+pos_set = import_words(pos_path, 35)
 
 emo_pos_set = ['lol', ':)', ':-)', ';)']
 emo_neg_set = [':(', ':-(']
 
 senti_set = pos_set + neg_set + emo_pos_set + emo_neg_set
 
+alcohol_set = import_words_utf8('alcohol word.txt', 1)
+vulgar_set = import_words_utf8('vulgar word.txt', 1)
+
+
+remove_punctuation_map = dict()
+for char in string.punctuation:
+    remove_punctuation_map[ord(char)] = None
 
 # max tweets for this search
 #max_tweets = 100000
@@ -39,8 +60,13 @@ senti_set = pos_set + neg_set + emo_pos_set + emo_neg_set
 tweets_per_qry = 100
 # file to write in
 f_name = 'tweets.txt'
-latitude = -37.814
-longitude = 144.96332
+loc_dct = defaultdict(dict)
+loc_dct['melbourne']['latitude'] = -37.814
+loc_dct['melbourne']['longitude'] = 144.96332
+loc_dct['sydney']['latitude'] = -33.86785
+loc_dct['sydney']['longitude'] = 151.20732
+latitude = loc_dct[search_loc]['latitude']
+longitude = loc_dct[search_loc]['longitude']
 radius = 25
 
 sinceId = None
@@ -50,7 +76,7 @@ max_id = -1
 #places = api.geo_search(query='Melbourne', granularity='city')
 #place_id = places[0].id
 
-#tweet_count = 0
+tweet_count = 0
 #senti_count = {}
 #print("Downloading max {0} tweets".format(max_tweets))
 with open(f_name, 'w') as f:
@@ -76,16 +102,42 @@ with open(f_name, 'w') as f:
             for tweet in new_tweets:
                 tweet_str = jsonpickle.encode(tweet._json, unpicklable=False)
                 tweet_dct = json.loads(tweet_str)
-                text = tweet_dct['text']
+                text = tweet_dct['text'].lower().translate(remove_punctuation_map)
                 tweet_dct_truncated = {}
                 senti = False
+                vulgar = False
+                alcohol = False
+                education = False
                 for word in senti_set:
-                    if word in text:
+                    if ' '+word+' ' in text:
                         senti = True
                         #senti_count[word] = senti_count.get(word, 0) + 1
                         tweet_dct_truncated['sentiment'] = 'available'
                         break
-                if senti == False:
+                for word in vulgar_set:
+                    if ' '+word+' ' in text:
+                        vulgar = True
+                        tweet_dct_truncated['vulgar'] = 'available'
+                        break
+                for word in alcohol_set:
+                    if ' '+word+' ' in text:
+                        alcohol = True
+                        tweet_dct_truncated['alcohol'] = 'available'
+                        break
+                    elif re.search('wine$', word):
+                        word_list = word.split()
+                        phrase = word_list[0]
+                        for i in range(1, len(word_list)-1):
+                            phrase = phrase + ' ' + word_list[i]
+                        if ' '+phrase+' ' in text and ' wine ' in text:
+                            alcohol = True
+                            tweet_dct_truncated['alcohol'] = 'available'
+                            break
+                if ' education ' in text:
+                    education = True
+                    tweet_dct_truncated['education'] = 'available'
+
+                if senti is False and vulgar is False and alcohol is False and education is False:
                     continue
 
                 tweet_dct_truncated['id'] = tweet_dct['id']
@@ -95,8 +147,8 @@ with open(f_name, 'w') as f:
                 tweet_dct_truncated['place'] = tweet_dct['place']
                 tweet_dct_truncated['entities'] = tweet_dct['entities']
                 f.write(json.dumps(tweet_dct_truncated) + '\n')
-            #tweet_count += len(new_tweets)
-            #print("Downloaded {0} tweets".format(tweet_count))
+            tweet_count += len(new_tweets)
+            print("Downloaded {0} tweets".format(tweet_count))
             max_id = new_tweets[-1].id
         except tweepy.TweepError as e:
             # exit if any error
