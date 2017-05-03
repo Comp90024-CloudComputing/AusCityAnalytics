@@ -236,7 +236,8 @@ baltic porter
 eisbock
 medoff
 craggy range winery
-golden/summer ale
+golden ale
+summer ale
 el charro
 pinot noir
 cream ale
@@ -329,7 +330,7 @@ marlborough wine
 casa dragones
 santa teresa
 ballantine's
-adelaide hills 78 degrees
+adelaide hills
 cruzan
 upper goulburn wine
 swan district wine
@@ -375,3 +376,9 @@ pampero
 auckland wine
 pyrenees wine
 pils
+Nelson wine
+winery
+wineries
+cellar door
+vineyard
+wine region
