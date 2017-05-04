@@ -158,9 +158,9 @@ while True:
             tweet_dct_truncated['place'] = tweet_dct['place']
             tweet_dct_truncated['entities'] = tweet_dct['entities']
             #tweet_json = json.dumps(tweet_dct_truncated)
-            #print(tweet_json)
             try:
                 db.save(tweet_dct_truncated)
+                #print(tweet_dct_truncated)
             except Exception as e:
                 #print (str(e) +" One repetitive tweet has been excluded")
                 print("warning! "+ str(e))

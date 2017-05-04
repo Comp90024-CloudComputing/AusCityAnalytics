@@ -7,6 +7,7 @@ from tweepy import Stream
 from itertools import islice
 from tweepy import OAuthHandler
 from tweepy.streaming import StreamListener
+import couchdb
 
 consumer_key = 'zfcB3Zj5WRp9f1pAHwJdtfiHm'
 consumer_secret = 'CWn46FyN3o9jfRePrgNrJwX9VzspR1t38c1Wp5bGLSej0IpETh'
@@ -112,7 +113,7 @@ class MyListener(StreamListener):
                     education = True
                     tweet_dct_truncated['education'] = 'available'
                 if senti is True or vulgar is True or alcohol is True or education is True:
-                    tweet_dct_truncated['_id'] = tweet_dct['id']
+                    tweet_dct_truncated['_id'] = str(tweet_dct['id'])
                     tweet_dct_truncated['created_at'] = tweet_dct['created_at']
                     tweet_dct_truncated['coordinates'] = tweet_dct['coordinates']
                     tweet_dct_truncated['text'] = tweet_dct['text']
