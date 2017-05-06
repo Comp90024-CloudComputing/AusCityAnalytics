@@ -1,0 +1,24 @@
+CouchDB cluster setup
+
+1. for each node
+sudo -i -u couchdb
+cd /home/couchdb/couchdb/etc/
+nano vm.args
+# change couchdb@localhost to couchdb@{ip-address}
+
+1. for each node
+# start couchdb
+exit
+sudo -i -u couchdb couchdb/bin/couchdb
+
+curl -X PUT http://127.0.0.1:5984/_node/couchdb@{ip-address}/_config/admins/admin -d '"password"'
+curl -X PUT http://admin:password@127.0.0.1:5984/_node/couchdb@{ip-address}/_config/chttpd/bind_address -d '"0.0.0.0"'
+
+# exit one of the node, create a SSH tunnel
+ssh -i cloud.key -L5984:127.0.0.1:5984 ubuntu@{ip-address}
+
+# web browser
+http://localhost:5984/_utils/index.html
+# verify installation
+# setup - cluster
+# add nodes

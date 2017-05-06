@@ -1,0 +1,18 @@
+---
+- hosts: cloud
+  sudo: yes
+  vars:
+    home_dir: /home/ubuntu
+  tasks:
+    - name: create a directory to store tmp files
+      command: mkdir tmp
+
+    - name: Download the Node.js setup 7.x
+      get_url: url=https://deb.nodesource.com/setup_7.x dest={{home_dir}}/tmp/setup_7.x
+
+
+    - name: Execute the setup script
+      shell: bash setup_7.x chdir={{home_dir}}/tmp executable=/bin/bash
+
+    - name: Install the Node.js and npm
+      apt: name=nodejs state=latest

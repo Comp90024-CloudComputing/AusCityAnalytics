@@ -1,0 +1,62 @@
+---
+- hosts: cloud
+  sudo: yes
+  vars:
+    couchdb_install_dir: /home/ubuntu/couchdb
+    couchdb_user_home: /home/couchdb
+
+  tasks:
+    - name: download dependencies
+      apt: name={{item}} state=installed
+      with_items:
+        - erlang
+        - libicu-dev
+        - openssl
+        - libmozjs185-dev
+        - build-essential
+        - git
+        - curl
+        - python2.7
+        - python-sphinx
+
+    - name: download couchdb from git
+      git: repo=http://git@github.com/apache/couchdb.git dest={{ couchdb_install_dir }} 
+
+    - name: run configure
+      shell: ./configure chdir={{ couchdb_install_dir }}
+
+    - name: touch files
+      shell: touch THANKS /usr/lib/erlang/man/man1/x86_64-linux-gnu-gcov-tool.1.gz /usr/lib/erlang/man/man1/gcov-tool.1.gz
+
+    - name: run make release
+      shell: make release chdir={{ couchdb_install_dir }}
+
+    - name: create a special couchdb user for CouchDB
+      shell: adduser --system --no-create-home --shell /bin/bash --group --gecos "CouchDB Administrator" couchdb
+
+    - name: create .ssh directory
+      file: name={{couchdb_user_home}}/.ssh state=directory
+
+    - name: import the key pair to the home directory of the user couchdb
+      command: cp /home/ubuntu/.ssh/authorized_keys {{couchdb_user_home}}/.ssh/
+    
+    - name: change the owner of the .ssh folder
+      command: chown -R couchdb {{couchdb_user_home}}/.ssh
+
+    - name: change the access mode of the .ssh folder
+      command: chmod 700 {{couchdb_user_home}}/.ssh
+
+    - name: change the access mode of the key files
+      shell: chmod 500 {{couchdb_user_home}}/.ssh/*
+
+    - name: Copy the built couchdb release to the new user’s home directory
+      command: cp -R {{couchdb_install_dir}}/rel/couchdb /home/couchdb
+
+    - name: Change the ownership of the CouchDB directories
+      command: chown -R couchdb:couchdb /home/couchdb/couchdb
+
+    - name: Change the permission of the CouchDB directories
+      command: find /home/couchdb/couchdb -type d -exec chmod 0770 {} \;
+
+    - name: Update the permissions for your ini files
+      shell: chmod 0644 /home/couchdb/couchdb/etc/*
