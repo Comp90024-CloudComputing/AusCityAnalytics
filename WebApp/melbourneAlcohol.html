@@ -179,7 +179,7 @@
 
         // NOTE: This uses cross-domain XHR, and may not work on older browsers.
         map.data.loadGeoJson(
-            'mel_alcohol_web.json');
+            'https://raw.githubusercontent.com/Comp90024-CloudComputing/AusCityAnalytics/master/WebApp/mel_alcohol_web.json');
         map.data.setStyle(function(feature){
             var id = feature.getProperty("feature_code");
             var name = feature.getProperty("feature_name");
