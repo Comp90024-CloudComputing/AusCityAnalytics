@@ -1,0 +1,297 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MyHtml.html</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <style>
+        .legend1 {
+            display: block;
+            width: 10px;
+            height: 10px;
+            border: 1px;
+            background-color: #FF0000;
+        }
+    </style>
+    <style>
+        .legend2 {
+            display: block;
+            width: 10px;
+            height: 10px;
+            border: 1px;
+            background-color: #ff6d22;
+        }
+    </style>
+    <style>
+        .legend3 {
+            display: block;
+            width: 10px;
+            height: 10px;
+            border: 1px;
+            background-color: #ff9724;
+        }
+    </style>
+
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #info-box {
+            background-color: white;
+            border: 1px solid black;
+            bottom: 100px;
+            height: 100px;
+            padding: 100px;
+            position: absolute;
+            right: 30px;
+        }
+        #info-box2 {
+            background-color: white;
+            border: 1px solid black;
+            top: 50px;
+            height: 100px;
+            padding: 50px;
+            position: absolute;
+            right: 30px;
+        }
+
+
+    </style>
+
+
+    <style type="text/css">
+        .windowdiv {
+            position: absolute;
+            background-color: white;
+            height: 1000px;
+            border: 0;
+        }
+
+        .windowtable {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .closetd {
+            background-color: purple;
+            font-family: "black";
+            cursor: pointer;
+            width: 1%;
+            height: 1%;
+        }
+
+        .windowframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+    <script type="text/javascript">
+
+        function creatWindow(strWindowUrl, intX, intY, intWidth, intHeight) {
+            var div = document.createElement("div");
+            document.body.appendChild(div);
+            div.className = "windowdiv";
+            div.style.top = intY;
+            div.style.left = intX;
+            div.style.width = intWidth;
+            div.style.height = intHeight;
+            var table = document.createElement("table");
+            table.className = "windowtable";
+            var frame = document.createElement("iframe");
+            frame.className = "windowframe";
+            frame.frameBorder = 0;
+            frame.src = strWindowUrl;
+            var tr, td;
+            tr = table.insertRow(0);
+            td = tr.insertCell(0);
+            td.colSpan = 2;
+            td.appendChild(frame);
+            tr = table.insertRow(0);
+            td = tr.insertCell(0);
+            td.innerText = "X";
+            td.className = "closetd";
+            td.onclick = function () {
+                div.style.display = "none";
+            };
+            td = tr.insertCell(0);
+            td.innerText = " ";
+            div.appendChild(table);
+        }
+    </script>
+
+</head>
+<body>
+<!--<div id="menu" style="background-color:	#F0FFF0;height:400px;width:250px;float:left;">-->
+    <!--<b>Area name: </b>-->
+    <!--<b id="area_name"></b><br>-->
+    <!--<b>Area code: </b>-->
+    <!--<b id="area_code"></b><br>-->
+    <!--<b>Area income: </b>-->
+    <!--<b id="area_alcohol"></b><br>-->
+    <!--<b><button type="button" onclick="window.location.href='http://localhost:63342/cloudweb/melbourneAlcohol.html?_ijt=bb880sr2p84jbkseg46b7obknh';">melbourneAlcohol</button></b>-->
+    <!--<b><button type="button" onclick="window.location.href='http://localhost:63342/cloudweb/sydneyIncome.html?_ijt=3322m0qqukuvmpe327mgf80e17';">sydneyAlcohol</button></b>-->
+    <!--<b><button type="button" onclick="window.location.href='http://localhost:63342/cloudweb/melbourneIncome.html?_ijt=3322m0qqukuvmpe327mgf80e17';">melbourneIncome</button></b>-->
+    <!--<b><button type="button" onclick="window.location.href='http://localhost:63342/cloudweb/sydneyIncome.html?_ijt=3322m0qqukuvmpe327mgf80e17';">sydneyIncome</button></b>-->
+
+<!--</div>-->
+
+
+
+
+<div id="map"></div>
+<div id="info-box">
+    <b>Area name: </b>
+    <b id="area_name"></b><br>
+    <b>Area code: </b>
+    <b id="area_code"></b><br>
+    <b>Area alcohol: </b>
+    <b id="area_alcohol"></b><br>
+    <b>Alcohol tweets: </b>
+    <b id="alcohol_tweets"></b><br>
+    <b><h2><input type="button" value="show analysis" onclick="creatWindow('sydneyAlcohol.png', 0, 0, 10, 40)"></h2></b>
+    <b><input type="button" value="back" onclick="location.href='googleMap.html'"></b>
+</div>
+
+<div id="info-box2">
+
+    <b><input type="legend" class="legend1"></b>
+    <b>alcohol > 500</b>
+
+    <b><input type="legend" class="legend2"></b>
+    <b>400 < alcohol < 500</b>
+    <b><input type="legend" class="legend3"></b>
+    <b>alcohol < 400</b>
+
+
+
+
+</div>
+
+
+<script>
+
+
+
+    var map;
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: {lat: -33.81, lng: 150.95}
+        });
+
+        // NOTE: This uses cross-domain XHR, and may not work on older browsers.
+        map.data.loadGeoJson(
+            'syd_alcohol_web.json');
+        map.data.setStyle(function(feature){
+            var id = feature.getProperty("feature_code");
+            var name = feature.getProperty("feature_name");
+            var alcohol = feature.getProperty("alcohol_cons_1_no_3_11_7_13");
+
+            if (alcohol>500){
+                color = "#FF0000"
+            }
+
+            else if (alcohol<500&&alcohol>400){
+                color = "#ff6d22"
+            }
+
+            else {
+                color = "#ff9724"
+            }
+            return {
+                fillOpacity:0.5,
+                fillColor: color,
+                strokeWeight: 1
+            };
+        });
+
+        // Set mouseover event for each feature.
+//        map.data.addListener('mouseover', function(event) {
+//            map.data.revertStyle();
+//            map.data.overrideStyle(event.feature, {strokeWeight: 3});
+//            document.getElementById('area_name').textContent =
+//                event.feature.getProperty('feature_name');
+//            document.getElementById('area_code').textContent =
+//                event.feature.getProperty('feature_code');
+//            document.getElementById('area_alcohol').textContent =
+//                event.feature.getProperty('alcohol_cons_1_no_3_11_7_13');
+//        });
+        map.data.addListener('mouseover', function(event) {
+            map.data.revertStyle();
+            map.data.overrideStyle(event.feature, {strokeWeight: 3});
+            document.getElementById('area_name').textContent =
+                event.feature.getProperty('feature_name');
+            document.getElementById('area_code').textContent =
+                event.feature.getProperty('feature_code');
+            if(event.feature.getProperty('alcohol_cons_1_no_3_11_7_13')){
+                document.getElementById('area_alcohol').textContent =
+                    event.feature.getProperty('alcohol_cons_1_no_3_11_7_13')
+            }else{
+                document.getElementById('area_alcohol').textContent =0
+            }
+            if(event.feature.getProperty('alcohol_tweets')){
+                document.getElementById('alcohol_tweets').textContent =
+                    event.feature.getProperty('alcohol_tweets')
+            }else{
+                document.getElementById('alcohol_tweets').textContent =0
+            }
+
+        });
+//        var contentString = 'niaho';
+//
+//        var infowindow = new google.maps.InfoWindow({
+//            content: contentString
+//        });
+//
+//
+//        map.data.addListener('click', function() {
+//            infowindow.open();
+//        });
+
+
+
+//        var infowindow = new google.maps.InfoWindow({
+//            content: 'nihao'
+//        });
+
+//        var marker = new google.maps.Marker({
+//            position: center,
+//            map: map,
+//            title: 'Uluru (Ayers Rock)'
+//        });
+//        marker.addListener('click', function(event) {
+//            infowindow.open(map, marker);
+//        });
+//        map.data.addListener('click', function(event){
+//            infowindow.open(map,center);
+//        });
+
+
+
+
+
+
+
+        // Set mouseover event for each feature.
+        //map.data.addListener('mouseover', function(event) {
+        //document.getElementById('info-box').textContent =
+        //event.feature.getProperty('income_2');
+        //});
+    }
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQ5A2CnA-Rxi4iXWkoYaVMigQFCeSIjzk&callback=initMap">
+</script>
+</body>
+</html>
